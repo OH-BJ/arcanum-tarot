@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
-import { PerformanceMonitor } from "@react-three/drei";
+import { PerformanceMonitor, Preload } from "@react-three/drei";
 import CameraRig from "./CameraRig";
 import Director from "./Director";
 import { isLowPower } from "./layout";
@@ -23,7 +23,8 @@ import { useReading } from "@/store/readingStore";
 
 export default function Experience() {
   // 휴대폰 등 저사양 기기는 처음부터 가볍게 시작 (이 컴포넌트는 브라우저에서만 렌더링됨)
-  const [quality, setQuality] = useState<"high" | "low">(() => (isLowPower() ? "low" : "high"));
+  // 품질은 시작할 때 한 번만 정함 — 도중에 바꾸면 후처리 파이프라인을 다시 만들며 크게 멈칫함
+  const [quality] = useState<"high" | "low">(() => (isLowPower() ? "low" : "high"));
   const [dpr, setDpr] = useState(() => (isLowPower() ? 1 : 1.5));
 
   return (
@@ -38,13 +39,8 @@ export default function Experience() {
       }}
     >
       <fog attach="fog" args={["#05030c", 7, 22]} />
-      <PerformanceMonitor
-        onIncline={() => setDpr(Math.min(2, window.devicePixelRatio))}
-        onDecline={() => {
-          setDpr(1);
-          setQuality("low");
-        }}
-      />
+      {/* 프레임이 계속 떨어지면 해상도만 한 번 낮춤 (flipflops 이후엔 고정) */}
+      <PerformanceMonitor flipflops={2} onDecline={() => setDpr(1)} onFallback={() => setDpr(1)} />
       <GsapSync />
       <CameraRig />
       <Lighting />
@@ -62,6 +58,8 @@ export default function Experience() {
         <ParticleBurst />
         {/* Suspense 안 마지막 — 모든 에셋이 준비된 뒤에야 첫 프레임이 기록됨 */}
         <Director />
+        {/* 숨겨진 카드·효과까지 셰이더를 미리 컴파일 → 첫 카드 뽑기/공개 때 멈칫하지 않게 */}
+        <Preload all />
       </Suspense>
       <PostFX quality={quality} />
     </Canvas>

@@ -9,7 +9,8 @@ import { SHUFFLE_SECONDS, useReading } from "@/store/readingStore";
 import { createEdgeGeometry, createFaceGeometry } from "./cardGeometry";
 import { createCardBackTexture } from "./proceduralTextures";
 import { setHoverCursor } from "../cursor";
-import { ARCH, isPortrait } from "../layout";
+import { ARCH, isLowPower, isPortrait } from "../layout";
+import { prefetchCardTexture } from "./cardTextures";
 import { pickRibbon, resetRibbon } from "../pickRibbon";
 import { sfx } from "@/lib/sound";
 
@@ -45,7 +46,10 @@ export default function Deck() {
   const backTex = useMemo(() => createCardBackTexture(), []);
   const faceMat = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      // 저사양: 조명 계산 없는 재질 (78장이 겹치는 덱에서 GPU 부담이 큼)
+      isLowPower()
+        ? new THREE.MeshBasicMaterial({ map: backTex, color: "#e6dcf0", side: THREE.DoubleSide })
+        : new THREE.MeshStandardMaterial({
         map: backTex,
         emissiveMap: backTex,
         emissive: new THREE.Color("#ffffff"),
@@ -59,7 +63,9 @@ export default function Deck() {
   const edgeMats = useMemo(
     () => [
       new THREE.MeshBasicMaterial({ visible: false }),
-      new THREE.MeshStandardMaterial({ color: "#d4af37", metalness: 1, roughness: 0.3, emissive: "#ffb347", emissiveIntensity: 0.25 }),
+      isLowPower()
+        ? new THREE.MeshBasicMaterial({ color: "#c9a23a" })
+        : new THREE.MeshStandardMaterial({ color: "#d4af37", metalness: 1, roughness: 0.3, emissive: "#ffb347", emissiveIntensity: 0.25 }),
     ],
     [],
   );
@@ -89,6 +95,7 @@ export default function Deck() {
       scale: new THREE.Vector3(),
       matrix: new THREE.Matrix4(),
       rank: new Int16Array(N),
+      picked: new Uint8Array(N),
     }),
     [],
   );
@@ -97,14 +104,17 @@ export default function Deck() {
     const dt = Math.min(rawDt, 0.05);
     const s = useReading.getState();
     const t = performance.now() / 1000 - s.phaseStartedAt;
-    const picked = new Set(s.drawn.map((d) => d.deckPos));
+    // 매 프레임 새 객체를 만들지 않도록 재사용 배열에 표시 (휴대폰 GC 끊김 방지)
+    const picked = tmp.picked;
+    picked.fill(0);
+    for (const d of s.drawn) picked[d.deckPos] = 1;
     const portrait = isPortrait(state.size.width / state.size.height);
 
     // 휴대폰 리본: 남은 카드만 한 줄로, 스크롤 위치를 부드럽게 따라감
     const ribbonRank = tmp.rank;
     if (s.phase === "picking" && portrait) {
       let r = 0;
-      for (let i = 0; i < N; i++) ribbonRank[i] = picked.has(i) ? -1 : r++;
+      for (let i = 0; i < N; i++) ribbonRank[i] = picked[i] ? -1 : r++;
       pickRibbon.count = r;
       if (!pickRibbon.initialized) {
         pickRibbon.initialized = true;
@@ -114,7 +124,10 @@ export default function Deck() {
       pickRibbon.value += (pickRibbon.target - pickRibbon.value) * (1 - Math.exp(-dt * 9));
       const focusRank = Math.round(pickRibbon.value);
       const focused = ribbonRank.indexOf(focusRank);
-      if (focused !== pickRibbon.focusedDeckPos && focused >= 0) sfx.hover();
+      if (focused !== pickRibbon.focusedDeckPos && focused >= 0) {
+        sfx.hover();
+        prefetchCardTexture(CARDS[s.deckOrder[focused]].image); // 가운데 카드 앞면을 미리 받아 둠
+      }
       pickRibbon.focusedDeckPos = focused;
     } else if (s.phase !== "picking") {
       resetRibbon();
@@ -162,7 +175,7 @@ export default function Deck() {
             // 손에 쥔 부채처럼 펼친 아치
             const arch = ARCH.wide;
             const a = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(arch.from, arch.to, i / (N - 1)));
-            const lift = hovered.current === i && !picked.has(i) ? 0.3 : 0;
+            const lift = hovered.current === i && !picked[i] ? 0.3 : 0;
             pos.set(
               arch.center[0] + Math.cos(a) * (arch.radius + lift),
               arch.center[1] + Math.sin(a) * (arch.radius + lift),
@@ -186,7 +199,7 @@ export default function Deck() {
           speed = s.phase === "gathering" ? 5 : 4;
       }
 
-      const hidden = picked.has(i) && (s.phase === "picking" || s.phase === "reading");
+      const hidden = picked[i] && (s.phase === "picking" || s.phase === "reading");
       if (hidden) {
         // 뽑힌 카드는 SpreadCard가 대신 그림 — 덱에서는 즉시 숨김
         c.scale = 0;
@@ -213,7 +226,10 @@ export default function Deck() {
   const onMove = (e: ThreeEvent<PointerEvent>) => {
     if (useReading.getState().phase !== "picking" || e.instanceId === undefined) return;
     e.stopPropagation();
-    if (hovered.current !== e.instanceId) sfx.hover();
+    if (hovered.current !== e.instanceId) {
+      sfx.hover();
+      prefetchCardTexture(CARDS[useReading.getState().deckOrder[e.instanceId]].image);
+    }
     hovered.current = e.instanceId;
     setHoverCursor("deck", true);
   };

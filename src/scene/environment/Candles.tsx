@@ -4,6 +4,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { useReading } from "@/store/readingStore";
+import { isLowPower } from "../layout";
 import { introTime } from "../Director";
 
 // 테이블 가장자리 배치. 210° 근처는 읽기 단계에서 남은 덱을 놓는 자리라 비워 둠
@@ -19,7 +20,12 @@ const CANDLES = [
 
 const FLAME = new THREE.Color(4.0, 1.7, 0.45);
 
+// 저사양: 실제 조명은 3개만 (조명 수만큼 모든 픽셀 계산이 늘어남), 대신 조금 밝게
+const lowPower = isLowPower();
+const LIT_ON_LOW_POWER = new Set([0, 3, 5]);
+
 function Candle({ index, angle, r, h }: { index: number; angle: number; r: number; h: number }) {
+  const hasLight = !lowPower || LIT_ON_LOW_POWER.has(index);
   const rad = (angle * Math.PI) / 180;
   const x = Math.cos(rad) * r;
   const z = Math.sin(rad) * r;
@@ -38,7 +44,7 @@ function Candle({ index, angle, r, h }: { index: number; angle: number; r: numbe
     const phase = useReading.getState().phase;
     const boost = phase === "shuffling" ? 1.35 : 1;
 
-    light.current.intensity = 3.2 * on * flicker * boost;
+    if (light.current) light.current.intensity = (hasLight && lowPower ? 5 : 3.2) * on * flicker * boost;
     flame.current.scale.set(on * (0.9 + flicker * 0.1), on * (0.8 + flicker * 0.35), on * (0.9 + flicker * 0.1));
     flame.current.position.x = Math.sin(t * 5 + seed) * 0.006;
     flameMat.current.color.copy(FLAME).multiplyScalar(flicker);
@@ -58,7 +64,7 @@ function Candle({ index, angle, r, h }: { index: number; angle: number; r: numbe
         <sphereGeometry args={[0.035, 16, 16]} />
         <meshBasicMaterial ref={flameMat} toneMapped={false} />
       </mesh>
-      <pointLight ref={light} position={[0, h + 0.2, 0]} color="#ff9a45" distance={7} decay={1.7} intensity={0} />
+      {hasLight && <pointLight ref={light} position={[0, h + 0.2, 0]} color="#ff9a45" distance={7} decay={1.7} intensity={0} />}
     </group>
   );
 }

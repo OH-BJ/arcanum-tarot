@@ -2,6 +2,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useReading } from "@/store/readingStore";
+import { registerRenderer } from "./objects/cardTextures";
 
 const INTRO_SECONDS = 3.2;
 
@@ -11,6 +12,7 @@ export default function Director() {
     const s = useReading.getState();
     const t = state.clock.elapsedTime;
     if (s.readyAt === null) {
+      registerRenderer(state.gl);
       s.setReadyAt(t);
       return;
     }
