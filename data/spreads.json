@@ -1,0 +1,49 @@
+[
+  {
+    "id": "one",
+    "name": "원 카드",
+    "description": "지금 이 순간 필요한 한 장의 메시지",
+    "positions": [
+      { "index": 1, "label": "오늘의 메시지", "meaning": "지금 당신에게 가장 필요한 조언", "x": 0, "y": 0 }
+    ]
+  },
+  {
+    "id": "three",
+    "name": "쓰리 카드",
+    "description": "과거 · 현재 · 미래의 흐름",
+    "positions": [
+      { "index": 1, "label": "과거", "meaning": "지금 상황을 만든 지난 흐름", "x": -1, "y": 0 },
+      { "index": 2, "label": "현재", "meaning": "지금 마주한 핵심", "x": 0, "y": 0 },
+      { "index": 3, "label": "미래", "meaning": "이대로 흘러갈 때 다가올 방향", "x": 1, "y": 0 }
+    ]
+  },
+  {
+    "id": "love",
+    "name": "연애 스프레드",
+    "description": "두 사람 사이의 마음과 흐름",
+    "positions": [
+      { "index": 1, "label": "나", "meaning": "이 관계에서 나의 마음", "x": -1.1, "y": 0.5 },
+      { "index": 2, "label": "관계의 현재", "meaning": "지금 두 사람 사이의 분위기", "x": 0, "y": 0.5 },
+      { "index": 3, "label": "상대", "meaning": "이 관계에서 상대의 마음", "x": 1.1, "y": 0.5 },
+      { "index": 4, "label": "장애물", "meaning": "관계를 가로막는 것", "x": -0.55, "y": -0.6 },
+      { "index": 5, "label": "앞으로", "meaning": "관계가 나아갈 방향", "x": 0.55, "y": -0.6 }
+    ]
+  },
+  {
+    "id": "celtic-cross",
+    "name": "켈틱 크로스",
+    "description": "상황 전체를 깊이 들여다보는 10장 배열",
+    "positions": [
+      { "index": 1, "label": "현재 상황", "meaning": "지금 당신이 놓인 자리", "x": -1, "y": 0 },
+      { "index": 2, "label": "장애물", "meaning": "현재를 가로지르는 도전", "x": -1, "y": 0, "rotate": 90 },
+      { "index": 3, "label": "의식적 목표", "meaning": "당신이 바라고 생각하는 것", "x": -1, "y": 1.1 },
+      { "index": 4, "label": "무의식", "meaning": "상황의 뿌리, 마음 깊은 곳", "x": -1, "y": -1.1 },
+      { "index": 5, "label": "과거", "meaning": "지나가고 있는 영향", "x": -2.4, "y": 0 },
+      { "index": 6, "label": "가까운 미래", "meaning": "곧 다가올 흐름", "x": 0.4, "y": 0 },
+      { "index": 7, "label": "자신", "meaning": "이 상황을 대하는 당신의 태도", "x": 2, "y": -1.5 },
+      { "index": 8, "label": "주변 환경", "meaning": "주변 사람과 환경의 영향", "x": 2, "y": -0.5 },
+      { "index": 9, "label": "희망과 두려움", "meaning": "마음속 기대와 불안", "x": 2, "y": 0.5 },
+      { "index": 10, "label": "최종 결과", "meaning": "흐름이 이어질 때의 결말", "x": 2, "y": 1.5 }
+    ]
+  }
+]
