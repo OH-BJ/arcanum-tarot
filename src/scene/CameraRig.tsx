@@ -43,9 +43,9 @@ export default function CameraRig() {
       target.current.set(shift, 0, (portrait ? 1.9 : 0.5) * d);
       pos.current.copy(READING_OFFSET).multiplyScalar(d).add(target.current);
     } else if (portrait && s.phase === "picking") {
-      // 휴대폰 전용 아치를 정면에서 꽉 차게
-      target.current.set(0, 1.9, 1.4);
-      pos.current.set(0, 2.0, 10.6);
+      // 휴대폰 리본(한 줄로 늘어놓은 카드)을 정면에서 크게
+      target.current.set(0, 1.75, 2.2);
+      pos.current.set(0, 2.05, 7.5);
     } else {
       const shot = SHOTS[s.phase];
       target.current.set(...shot.look);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { CARDS, cardLabel } from "@/lib/deck";
 import { positionLine, summarizeReading } from "@/lib/interpret";
 import AiReading from "./AiReading";
@@ -22,6 +23,8 @@ export default function ReadingPanel({ visible }: { visible: boolean }) {
   const revealAll = useReading((s) => s.revealAll);
   const newReading = useReading((s) => s.newReading);
 
+  const [collapsedAt, setCollapsedAt] = useState<number | null | "never">("never");
+  const collapsed = collapsedAt === activeSlot;
   const spread = getSpread(spreadId);
   const active = drawn.find((d) => d.slot === activeSlot);
   const activeCard = active ? CARDS[active.cardIndex] : null;
@@ -58,11 +61,20 @@ export default function ReadingPanel({ visible }: { visible: boolean }) {
 
       {/* 해석 패널 */}
       <section
-        className={`absolute inset-x-3 bottom-3 max-h-[46vh] overflow-y-auto rounded-2xl border border-gold/25 bg-[#0d0820]/80 p-5 shadow-[0_0_60px_rgba(212,175,55,0.12)] backdrop-blur-md transition-all duration-700 md:inset-x-auto md:bottom-auto md:right-[4vw] md:top-1/2 md:max-h-[88vh] md:w-[400px] md:-translate-y-1/2 md:p-6 ${
+        className={`absolute inset-x-3 bottom-3 ${collapsed ? "max-h-[3.75rem] overflow-hidden" : "max-h-[46vh] overflow-y-auto"} rounded-2xl border border-gold/25 bg-[#0d0820]/80 p-5 shadow-[0_0_60px_rgba(212,175,55,0.12)] backdrop-blur-md transition-all duration-700 md:inset-x-auto md:bottom-auto md:right-[4vw] md:top-1/2 md:max-h-[88vh] md:w-[400px] md:-translate-y-1/2 md:p-6 ${
           visible ? "pointer-events-auto opacity-100" : "pointer-events-none translate-y-6 opacity-0"
         }`}
       >
-        <p className="font-display text-xs tracking-[0.45em] text-gold/75">{spread.name}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-display text-xs tracking-[0.45em] text-gold/75">{spread.name}</p>
+          {/* 휴대폰: 패널 접기/펼치기 (다른 카드를 고르면 자동으로 다시 펼쳐짐) */}
+          <button
+            onClick={() => setCollapsedAt(collapsed ? "never" : activeSlot)}
+            className="-my-2 rounded-full px-3 py-2 font-serif-ko text-xs text-parchment/60 active:bg-white/10 md:hidden"
+          >
+            {collapsed ? "펼치기 ▴" : "접기 ▾"}
+          </button>
+        </div>
         {question.trim() && (
           <p className="mt-2 font-serif-ko text-[15px] italic leading-6 text-parchment/90">“{question.trim()}”</p>
         )}

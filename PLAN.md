@@ -247,6 +247,8 @@ interface DrawnCard { card: Card; reversed: boolean; position: number; revealed:
 
 - **2026-10-12 — 8단계 + 해석 강화 완료**: Vercel 배포(https://arcanum-tarot.vercel.app, Gemini 키는 Vercel 환경변수). 휴대폰(세로 화면) 대응 — 전용 아치 배치·카메라 샷(`scene/layout.ts`), 선택 화면에서 테이블이 UI 위로 보이게, 크게 보기 카드는 화면 위쪽 절반에 작게, 선택 UI 압축. 터치·좁은 화면은 저사양 모드(해상도 1, 파티클 절반, 안티에일리어싱 끔). 인트로 "건너뛰기", WebGL 미지원 시 안내 화면. 규칙 기반 해석 강화 — 자리별 문장(패널), 질문 주제 감지(연애·일·돈·관계), 원소 균형, 숫자 반복·궁정 카드·에이스 패턴, 의미 깊은 카드 조합 10종.
 
+- **2026-10-12 — 휴대폰 카드 고르기 개선**: 세로 화면에서는 78장 부채 대신 큼직한 카드를 한 줄로 늘어놓은 "리본"(`scene/pickRibbon.ts` + `components/MobilePicker.tsx`) — 좌우 스와이프(관성 후 한 장에 딱 멈춤), 가운데 탭/"이 카드 선택" 버튼으로 선택, 양옆 탭·‹ › 버튼으로 한 장씩 이동, 넘길 때 틱 소리. 해석 패널은 휴대폰에서 접기/펼치기 가능(다른 카드를 고르면 자동으로 펼쳐짐).
+
 ### 기술 메모 (이 프로젝트에서 확인된 함정)
 - **R3F 캔버스 안에서는 `useEffect`/zustand 훅 구독에 의존하지 말 것.** 이 환경(React 19.3 + R3F 9.8 + Next 16)에서 캔버스 내부의 effect·구독이 제때 실행되지 않아 상태 변화가 반영되지 않았음. → 상태는 `useReading.getState()`로 이벤트/`useFrame` 시점에 읽고, 단계 변화는 `useFrame`에서 이전 값과 비교해 감지한다.
 - **GSAP는 R3F 렌더 루프로 구동** (`src/scene/GsapSync.tsx`): `gsap.ticker`에서 `updateRoot`를 빼고 `useFrame`에서 직접 호출.

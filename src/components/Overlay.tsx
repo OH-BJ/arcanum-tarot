@@ -8,6 +8,7 @@ import MajorTitle from "./MajorTitle";
 import EnterGate from "./EnterGate";
 import QuestionFlight from "./QuestionFlight";
 import SoundToggle from "./SoundToggle";
+import MobilePicker from "./MobilePicker";
 import { useEffect } from "react";
 import Link from "next/link";
 
@@ -57,6 +58,7 @@ export default function Overlay() {
       </p>
 
       <PickProgress visible={phase === "picking"} />
+      <MobilePicker />
       <ReadingPanel visible={phase === "reading"} />
       <MajorTitle />
       <QuestionFlight />

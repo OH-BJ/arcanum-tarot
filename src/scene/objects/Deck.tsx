@@ -10,6 +10,7 @@ import { createEdgeGeometry, createFaceGeometry } from "./cardGeometry";
 import { createCardBackTexture } from "./proceduralTextures";
 import { setHoverCursor } from "../cursor";
 import { ARCH, isPortrait } from "../layout";
+import { pickRibbon, resetRibbon } from "../pickRibbon";
 import { sfx } from "@/lib/sound";
 
 const N = CARDS.length;
@@ -22,6 +23,11 @@ const TABLE_STACK = new THREE.Vector3(0, 0.03, 1.0);
 const READING_STACK = new THREE.Vector3(-2.7, 0.03, -1.9); // 테이블 가장자리 215° 방향 (배열·촛불과 겹치지 않는 자리)
 const AIR_STACK = new THREE.Vector3(0, 1.55, 0.6);
 const STACK_SCALE = 0.8;
+// 휴대폰 리본 배치
+const RIBBON_SPACING = 0.42;
+const RIBBON_Y = 1.55;
+const RIBBON_Z = 2.2;
+const RIBBON_SCALE = 0.62;
 const SHUFFLE_GATHER_AT = SHUFFLE_SECONDS - 0.75;
 
 const X_AXIS = new THREE.Vector3(1, 0, 0);
@@ -82,6 +88,7 @@ export default function Deck() {
       euler: new THREE.Euler(),
       scale: new THREE.Vector3(),
       matrix: new THREE.Matrix4(),
+      rank: new Int16Array(N),
     }),
     [],
   );
@@ -91,6 +98,27 @@ export default function Deck() {
     const s = useReading.getState();
     const t = performance.now() / 1000 - s.phaseStartedAt;
     const picked = new Set(s.drawn.map((d) => d.deckPos));
+    const portrait = isPortrait(state.size.width / state.size.height);
+
+    // 휴대폰 리본: 남은 카드만 한 줄로, 스크롤 위치를 부드럽게 따라감
+    const ribbonRank = tmp.rank;
+    if (s.phase === "picking" && portrait) {
+      let r = 0;
+      for (let i = 0; i < N; i++) ribbonRank[i] = picked.has(i) ? -1 : r++;
+      pickRibbon.count = r;
+      if (!pickRibbon.initialized) {
+        pickRibbon.initialized = true;
+        pickRibbon.value = pickRibbon.target = Math.floor(r / 2);
+      }
+      pickRibbon.target = Math.min(pickRibbon.target, Math.max(0, r - 1));
+      pickRibbon.value += (pickRibbon.target - pickRibbon.value) * (1 - Math.exp(-dt * 9));
+      const focusRank = Math.round(pickRibbon.value);
+      const focused = ribbonRank.indexOf(focusRank);
+      if (focused !== pickRibbon.focusedDeckPos && focused >= 0) sfx.hover();
+      pickRibbon.focusedDeckPos = focused;
+    } else if (s.phase !== "picking") {
+      resetRibbon();
+    }
     const { pos, quat, q2, euler } = tmp;
 
     for (let i = 0; i < N; i++) {
@@ -122,9 +150,17 @@ export default function Deck() {
           if (t < i * 0.008) {
             pos.copy(AIR_STACK).z += i * 0.004;
             quat.identity();
+          } else if (portrait) {
+            // 휴대폰: 큼직한 카드가 한 줄로 — 가운데 카드가 떠오르고, 멀어질수록 뒤로 휘어짐
+            const d = ribbonRank[i] - pickRibbon.value;
+            const near = Math.max(0, 1 - Math.abs(d));
+            pos.set(d * RIBBON_SPACING, RIBBON_Y + near * 0.35, RIBBON_Z - d * d * 0.04 - Math.abs(d) * 0.02);
+            euler.set(0, -d * 0.12, -d * 0.06);
+            quat.setFromEuler(euler);
+            targetScale = RIBBON_SCALE + near * 0.1;
           } else {
             // 손에 쥔 부채처럼 펼친 아치
-            const arch = isPortrait(state.size.width / state.size.height) ? ARCH.portrait : ARCH.wide;
+            const arch = ARCH.wide;
             const a = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(arch.from, arch.to, i / (N - 1)));
             const lift = hovered.current === i && !picked.has(i) ? 0.3 : 0;
             pos.set(
