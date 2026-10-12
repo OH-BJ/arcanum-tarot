@@ -118,7 +118,7 @@ export default function Deck() {
       pickRibbon.count = r;
       if (!pickRibbon.initialized) {
         pickRibbon.initialized = true;
-        pickRibbon.value = pickRibbon.target = Math.floor(r / 2);
+        pickRibbon.value = pickRibbon.target = 0; // 맨 왼쪽 첫 장부터 시작
       }
       pickRibbon.target = Math.min(pickRibbon.target, Math.max(0, r - 1));
       pickRibbon.value += (pickRibbon.target - pickRibbon.value) * (1 - Math.exp(-dt * 9));
