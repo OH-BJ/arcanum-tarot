@@ -224,7 +224,7 @@ interface DrawnCard { card: Card; reversed: boolean; position: number; revealed:
 | **4. 공개 & 해석** ✅ | 줌인 뒤집기, 메이저 특별 연출, 홀로 포일, 해석 패널 | 1장/3장 리딩 완성 |
 | **5. 인트로 & 질문** ✅ | 촛불 점등 인트로, 수정구슬 질문 연출, 사운드 | 처음부터 끝까지 이어지는 체험 |
 | **6. 켈틱 크로스 + 도감** ✅ | 10장 배치, 3D 카드 갤러리 | MVP 완성 |
-| **7. AI 해석** | `/api/interpret` + Claude 스트리밍 | 종합 해석 |
+| **7. AI 해석** ✅ | `/api/interpret` + Gemini 무료 API 스트리밍 (유료 API 대신) | 종합 해석 |
 | **8. 최적화 & 배포** | 모바일 품질 조절, 연출 건너뛰기, 2D 폴백, Vercel 배포 | 모바일에서 60fps 근접 |
 
 ### 진행 기록
@@ -242,6 +242,8 @@ interface DrawnCard { card: Card; reversed: boolean; position: number; revealed:
 
 - **2026-10-12 — 6단계 완료 (MVP)**: 켈틱 크로스 10장 줌인 공개까지 확인. 카드 도감 추가 — `/cards`(분류 탭·검색·마우스 따라 3D 기울기 + 홀로그램 광택 카드 그리드, 별빛 배경), `/cards/[id]`(드래그로 돌려 보는 3D 카드 + 금빛 디졸브 등장, 뒷면 보기·역방향 보기, 정/역방향 해석, 이전/다음 카드). 78개 상세 페이지 빌드 시 정적 생성. 메인 선택 화면 왼쪽 위에 도감 링크.
   - 구조: `components/gallery/*`, `scene/viewer/CardViewer.tsx`(조작 상태는 ref로 전달, 3D가 useFrame에서 읽음)
+
+- **2026-10-12 — 7단계 완료**: 모든 카드를 공개하면 패널에 "✦ AI 종합 해석" → "카드들의 이야기 듣기" 버튼(무료 사용량 절약을 위해 눌렀을 때만 요청). `/api/interpret`가 서버에서만 `GEMINI_API_KEY`로 Gemini(`gemini-2.5-flash`, thinking 끔) 호출 → 글자가 흘러나오듯 스트리밍. 키 없음·사용량 초과·요청 과다(IP당 분당 6회) 시 안내 문구와 함께 규칙 기반 "전체 흐름" 요약을 참고하도록 함. SDK 없이 REST + fetch.
 
 ### 기술 메모 (이 프로젝트에서 확인된 함정)
 - **R3F 캔버스 안에서는 `useEffect`/zustand 훅 구독에 의존하지 말 것.** 이 환경(React 19.3 + R3F 9.8 + Next 16)에서 캔버스 내부의 effect·구독이 제때 실행되지 않아 상태 변화가 반영되지 않았음. → 상태는 `useReading.getState()`로 이벤트/`useFrame` 시점에 읽고, 단계 변화는 `useFrame`에서 이전 값과 비교해 감지한다.

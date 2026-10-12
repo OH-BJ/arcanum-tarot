@@ -2,6 +2,7 @@
 
 import { CARDS, cardLabel } from "@/lib/deck";
 import { summarizeReading } from "@/lib/interpret";
+import AiReading from "./AiReading";
 import { getSpread } from "@/lib/spreads";
 import { useReading } from "@/store/readingStore";
 
@@ -138,6 +139,16 @@ export default function ReadingPanel({ visible }: { visible: boolean }) {
               ))}
             </ul>
           </div>
+        )}
+
+        {allRevealed && (
+          // 리딩이 바뀌면 key가 바뀌어 AI 해석 상태도 새로 시작
+          <AiReading
+            key={drawn.map((d) => `${d.cardIndex}${d.reversed ? "r" : ""}`).join("-")}
+            spreadId={spreadId}
+            question={question}
+            drawn={revealed}
+          />
         )}
 
         <div className="my-4 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
