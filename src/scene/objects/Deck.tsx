@@ -64,7 +64,7 @@ export default function Deck() {
     () => [
       new THREE.MeshBasicMaterial({ visible: false }),
       isLowPower()
-        ? new THREE.MeshBasicMaterial({ color: "#c9a23a" })
+        ? new THREE.MeshBasicMaterial({ color: "#8f6f26" })
         : new THREE.MeshStandardMaterial({ color: "#d4af37", metalness: 1, roughness: 0.3, emissive: "#ffb347", emissiveIntensity: 0.25 }),
     ],
     [],

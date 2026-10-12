@@ -3,23 +3,12 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
+import { detectGpu } from "@/scene/layout";
 
 // three.js는 브라우저 전용 — 서버 프리렌더 제외
 const Experience = dynamic(() => import("@/scene/Experience"), { ssr: false });
 
-// 렌더링마다 호출되므로 결과를 캐시 (검사용 WebGL 컨텍스트를 한 번만 만듦)
-let webglSupported: boolean | null = null;
-function detectWebGL() {
-  if (webglSupported === null) {
-    try {
-      const c = document.createElement("canvas");
-      webglSupported = !!(c.getContext("webgl2") || c.getContext("webgl"));
-    } catch {
-      webglSupported = false;
-    }
-  }
-  return webglSupported;
-}
+const detectWebGL = () => detectGpu().webgl; // 결과는 layout.ts에서 캐시
 
 const subscribe = () => () => {};
 

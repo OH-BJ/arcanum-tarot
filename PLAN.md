@@ -251,6 +251,8 @@ interface DrawnCard { card: Card; reversed: boolean; position: number; revealed:
 
 - **2026-10-12 — 카드 고르기 버벅임 개선**: drei `Preload all`로 숨겨진 카드·효과 셰이더까지 시작 시 미리 컴파일. 카드 앞면은 ImageBitmap(백그라운드 디코딩) + 불러오자마자 GPU 업로드(`renderer.initTexture`), 호버·가운데 카드는 미리 받아 둠. 품질은 시작 시 한 번만 결정(도중 전환 시 후처리 재생성으로 멈칫하던 문제 제거), 프레임 저하 시 해상도만 낮춤. 저사양: 덱 카드는 조명 없는 재질, 실제 촛불 조명 3개만, 블룸 단계 축소·색수차/노이즈 생략. 덱의 매 프레임 객체 생성 제거.
 
+- **2026-10-12 — 가벼운 모드**: 그래픽 가속이 꺼진 환경(소프트웨어 렌더링: SwiftShader 등)을 자동 감지하면 초경량 모드(해상도 0.75, 후처리 없이 렌더러 톤매핑, 저사양 재질·조명·파티클) + 안내 문구. 설정을 못 바꾸는 PC방 등을 위해 오른쪽 위 "가벼운 모드" 버튼(브라우저에 기억, 새로고침으로 적용). 감지·판별은 `scene/layout.ts`.
+
 ### 기술 메모 (이 프로젝트에서 확인된 함정)
 - **R3F 캔버스 안에서는 `useEffect`/zustand 훅 구독에 의존하지 말 것.** 이 환경(React 19.3 + R3F 9.8 + Next 16)에서 캔버스 내부의 effect·구독이 제때 실행되지 않아 상태 변화가 반영되지 않았음. → 상태는 `useReading.getState()`로 이벤트/`useFrame` 시점에 읽고, 단계 변화는 `useFrame`에서 이전 값과 비교해 감지한다.
 - **GSAP는 R3F 렌더 루프로 구동** (`src/scene/GsapSync.tsx`): `gsap.ticker`에서 `updateRoot`를 빼고 `useFrame`에서 직접 호출.

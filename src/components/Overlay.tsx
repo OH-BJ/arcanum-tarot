@@ -9,6 +9,7 @@ import EnterGate from "./EnterGate";
 import QuestionFlight from "./QuestionFlight";
 import SoundToggle from "./SoundToggle";
 import MobilePicker from "./MobilePicker";
+import LiteModeToggle from "./LiteModeToggle";
 import { useEffect } from "react";
 import Link from "next/link";
 
@@ -64,6 +65,7 @@ export default function Overlay() {
       <QuestionFlight />
       <EnterGate />
       {entered && <SoundToggle />}
+      {entered && <LiteModeToggle />}
       {/* 인트로 건너뛰기 */}
       <button
         onClick={() => useReading.getState().setPhase("select")}
