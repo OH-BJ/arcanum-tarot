@@ -36,7 +36,7 @@ export default function Overlay() {
 
       {/* 타이틀 */}
       <header
-        className={`absolute inset-x-0 top-[6vh] flex flex-col items-center gap-3 px-4 text-center transition-all duration-[1400ms] ${
+        className={`absolute inset-x-0 top-[max(6vh,64px)] flex flex-col items-center gap-2 px-4 text-center transition-all duration-[1400ms] sm:gap-3 ${
           showTitle ? "translate-y-0 opacity-100 delay-[1200ms]" : "-translate-y-6 opacity-0"
         }`}
       >
@@ -62,6 +62,15 @@ export default function Overlay() {
       <QuestionFlight />
       <EnterGate />
       {entered && <SoundToggle />}
+      {/* 인트로 건너뛰기 */}
+      <button
+        onClick={() => useReading.getState().setPhase("select")}
+        className={`absolute bottom-6 right-5 font-serif-ko text-xs tracking-widest text-parchment/45 transition hover:text-gold ${
+          entered && phase === "intro" ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      >
+        건너뛰기 ›
+      </button>
       {/* 카드 도감 바로가기 (배열 고르는 화면에서) */}
       <Link
         href="/cards"

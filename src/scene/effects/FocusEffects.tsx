@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { CARDS } from "@/lib/deck";
 import { useReading } from "@/store/readingStore";
-import { cameraSpace, FOCUS_DISTANCE, focusOffset } from "../focus";
+import { backdropDistance, cameraSpace, focusOffset } from "../focus";
 import { raysFragment, raysVertex } from "../shaders/rays";
 
 const GOLD = new THREE.Color(1.0, 0.75, 0.35);
@@ -52,7 +52,7 @@ export default function FocusEffects() {
     if (inMajor) dim = 0.96;
     backdropMat.current.opacity += (dim - backdropMat.current.opacity) * k;
     backdrop.current.visible = backdropMat.current.opacity > 0.005;
-    cameraSpace(cam, tmp.offset.set(0, 0, -(FOCUS_DISTANCE + 0.9)), backdrop.current.position);
+    cameraSpace(cam, tmp.offset.set(0, 0, -backdropDistance(aspect)), backdrop.current.position);
     backdrop.current.quaternion.copy(cam.quaternion);
 
     // 후광: 카드 뒤

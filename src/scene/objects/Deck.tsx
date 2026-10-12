@@ -9,6 +9,7 @@ import { SHUFFLE_SECONDS, useReading } from "@/store/readingStore";
 import { createEdgeGeometry, createFaceGeometry } from "./cardGeometry";
 import { createCardBackTexture } from "./proceduralTextures";
 import { setHoverCursor } from "../cursor";
+import { ARCH, isPortrait } from "../layout";
 import { sfx } from "@/lib/sound";
 
 const N = CARDS.length;
@@ -20,12 +21,7 @@ export const deckMatrices = Array.from({ length: N }, () => new THREE.Matrix4())
 const TABLE_STACK = new THREE.Vector3(0, 0.03, 1.0);
 const READING_STACK = new THREE.Vector3(-2.7, 0.03, -1.9); // 테이블 가장자리 215° 방향 (배열·촛불과 겹치지 않는 자리)
 const AIR_STACK = new THREE.Vector3(0, 1.55, 0.6);
-const ARCH_CENTER = new THREE.Vector3(0, -0.35, 1.2);
-const ARCH_RADIUS = 2.9;
-const ARCH_FROM = (158 * Math.PI) / 180;
-const ARCH_TO = (22 * Math.PI) / 180;
 const STACK_SCALE = 0.8;
-const ARCH_SCALE = 0.6;
 const SHUFFLE_GATHER_AT = SHUFFLE_SECONDS - 0.75;
 
 const X_AXIS = new THREE.Vector3(1, 0, 0);
@@ -90,7 +86,7 @@ export default function Deck() {
     [],
   );
 
-  useFrame((_, rawDt) => {
+  useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
     const s = useReading.getState();
     const t = performance.now() / 1000 - s.phaseStartedAt;
@@ -128,15 +124,16 @@ export default function Deck() {
             quat.identity();
           } else {
             // 손에 쥔 부채처럼 펼친 아치
-            const a = THREE.MathUtils.lerp(ARCH_FROM, ARCH_TO, i / (N - 1));
+            const arch = isPortrait(state.size.width / state.size.height) ? ARCH.portrait : ARCH.wide;
+            const a = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(arch.from, arch.to, i / (N - 1)));
             const lift = hovered.current === i && !picked.has(i) ? 0.3 : 0;
             pos.set(
-              ARCH_CENTER.x + Math.cos(a) * (ARCH_RADIUS + lift),
-              ARCH_CENTER.y + Math.sin(a) * (ARCH_RADIUS + lift),
-              ARCH_CENTER.z + i * 0.004 + lift * 0.3,
+              arch.center[0] + Math.cos(a) * (arch.radius + lift),
+              arch.center[1] + Math.sin(a) * (arch.radius + lift),
+              arch.center[2] + i * 0.004 + lift * 0.3,
             );
             quat.setFromAxisAngle(Z_AXIS, a - Math.PI / 2);
-            targetScale = hovered.current === i ? ARCH_SCALE * 1.08 : ARCH_SCALE;
+            targetScale = hovered.current === i ? arch.scale * 1.08 : arch.scale;
           }
           speed = 7;
           break;

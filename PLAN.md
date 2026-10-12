@@ -225,7 +225,7 @@ interface DrawnCard { card: Card; reversed: boolean; position: number; revealed:
 | **5. 인트로 & 질문** ✅ | 촛불 점등 인트로, 수정구슬 질문 연출, 사운드 | 처음부터 끝까지 이어지는 체험 |
 | **6. 켈틱 크로스 + 도감** ✅ | 10장 배치, 3D 카드 갤러리 | MVP 완성 |
 | **7. AI 해석** ✅ | `/api/interpret` + Gemini 무료 API 스트리밍 (유료 API 대신) | 종합 해석 |
-| **8. 최적화 & 배포** | 모바일 품질 조절, 연출 건너뛰기, 2D 폴백, Vercel 배포 | 모바일에서 60fps 근접 |
+| **8. 최적화 & 배포** ✅ | 모바일 품질 조절, 연출 건너뛰기, 2D 폴백, Vercel 배포 | 모바일에서 60fps 근접 |
 
 ### 진행 기록
 - **2026-10-12 — 0·1단계 완료**: 촛불 점등 인트로, 회전하는 마법진, 별/금빛 먼지 파티클, Bloom·비네트 후처리, 금박 카드 뒷면(코드로 생성), 1.5바퀴 회전 뒤집기 + 금빛 디졸브 공개 + 파티클 폭발 + 후광, 홀로그램 포일, 정/역방향, 해석 패널, 다시 뽑기. 현재 카드 데이터는 메이저 4장(0, I, XVII, XIX)만 있음.
@@ -245,6 +245,8 @@ interface DrawnCard { card: Card; reversed: boolean; position: number; revealed:
 
 - **2026-10-12 — 7단계 완료**: 모든 카드를 공개하면 패널에 "✦ AI 종합 해석" → "카드들의 이야기 듣기" 버튼(무료 사용량 절약을 위해 눌렀을 때만 요청). `/api/interpret`가 서버에서만 `GEMINI_API_KEY`로 Gemini(`gemini-2.5-flash`, thinking 끔) 호출 → 글자가 흘러나오듯 스트리밍. 키 없음·사용량 초과·요청 과다(IP당 분당 6회) 시 안내 문구와 함께 규칙 기반 "전체 흐름" 요약을 참고하도록 함. SDK 없이 REST + fetch.
 
+- **2026-10-12 — 8단계 + 해석 강화 완료**: Vercel 배포(https://arcanum-tarot.vercel.app, Gemini 키는 Vercel 환경변수). 휴대폰(세로 화면) 대응 — 전용 아치 배치·카메라 샷(`scene/layout.ts`), 선택 화면에서 테이블이 UI 위로 보이게, 크게 보기 카드는 화면 위쪽 절반에 작게, 선택 UI 압축. 터치·좁은 화면은 저사양 모드(해상도 1, 파티클 절반, 안티에일리어싱 끔). 인트로 "건너뛰기", WebGL 미지원 시 안내 화면. 규칙 기반 해석 강화 — 자리별 문장(패널), 질문 주제 감지(연애·일·돈·관계), 원소 균형, 숫자 반복·궁정 카드·에이스 패턴, 의미 깊은 카드 조합 10종.
+
 ### 기술 메모 (이 프로젝트에서 확인된 함정)
 - **R3F 캔버스 안에서는 `useEffect`/zustand 훅 구독에 의존하지 말 것.** 이 환경(React 19.3 + R3F 9.8 + Next 16)에서 캔버스 내부의 effect·구독이 제때 실행되지 않아 상태 변화가 반영되지 않았음. → 상태는 `useReading.getState()`로 이벤트/`useFrame` 시점에 읽고, 단계 변화는 `useFrame`에서 이전 값과 비교해 감지한다.
 - **GSAP는 R3F 렌더 루프로 구동** (`src/scene/GsapSync.tsx`): `gsap.ticker`에서 `updateRoot`를 빼고 `useFrame`에서 직접 호출.
@@ -254,6 +256,7 @@ interface DrawnCard { card: Card; reversed: boolean; position: number; revealed:
 - 배경 암전 막은 불투명도를 0.85 이상으로 해야 눈에 띈다 — 마법진·촛불이 HDR로 밝아 블룸·톤매핑을 거치면 반투명 검은 막이 거의 티가 안 남.
 - 투명하게 사라지는 오버레이 안의 버튼에 `pointer-events-auto`가 있으면 부모가 `pointer-events-none`이어도 클릭을 가로챈다 → 숨길 때 버튼 자체의 포인터 이벤트도 꺼야 함 (입장 버튼이 질문 입력칸을 가렸던 버그).
 - Next 16 + Cache Components: `dynamicParams` 사용 불가 → `generateStaticParams` + `notFound()`. 동적 라우트에서 `params`를 읽는 부분은 `<Suspense>` 안에 둬야 "instant navigation" 개발 오류가 안 남. 새 라우트를 만들면 `npx next typegen`으로 `PageProps` 타입 갱신.
+- 휴대폰 화면 확인: 브라우저 창 크기를 못 바꾸므로, 배포된 페이지에서 390×844 iframe을 띄워 확인(미리보기 배포 `npx vercel deploy --yes`). 로컬 개발 서버는 메모리 부족으로 종료된 적이 있어 Vercel 미리보기로 대체.
 - `src/scene/**`는 three.js 객체를 매 프레임 직접 수정하므로 ESLint `react-hooks/immutability`, `react-hooks/purity`를 끔 (`eslint.config.mjs`).
 
 ---

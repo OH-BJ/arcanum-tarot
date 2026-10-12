@@ -1,7 +1,7 @@
 "use client";
 
 import { CARDS, cardLabel } from "@/lib/deck";
-import { summarizeReading } from "@/lib/interpret";
+import { positionLine, summarizeReading } from "@/lib/interpret";
 import AiReading from "./AiReading";
 import { getSpread } from "@/lib/spreads";
 import { useReading } from "@/store/readingStore";
@@ -34,6 +34,7 @@ export default function ReadingPanel({ visible }: { visible: boolean }) {
     ? summarizeReading(
         spread,
         revealed.map((d) => ({ card: CARDS[d.cardIndex], reversed: d.reversed, slot: d.slot })),
+        question,
       )
     : [];
 
@@ -95,7 +96,10 @@ export default function ReadingPanel({ visible }: { visible: boolean }) {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-3 font-serif-ko text-[15px] leading-7 text-parchment/90">
+                <p className="mt-3 font-serif-ko text-[13.5px] leading-6 text-gold/80">
+                  {positionLine(activePos, activeCard, active.reversed)}
+                </p>
+                <p className="mt-2 font-serif-ko text-[15px] leading-7 text-parchment/90">
                   {active.reversed ? activeCard.reversed : activeCard.upright}
                 </p>
 

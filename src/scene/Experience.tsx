@@ -6,6 +6,7 @@ import { Canvas } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
 import CameraRig from "./CameraRig";
 import Director from "./Director";
+import { isLowPower } from "./layout";
 import GsapSync from "./GsapSync";
 import Lighting from "./Lighting";
 import Table from "./environment/Table";
@@ -21,8 +22,9 @@ import FocusEffects from "./effects/FocusEffects";
 import { useReading } from "@/store/readingStore";
 
 export default function Experience() {
-  const [quality, setQuality] = useState<"high" | "low">("high");
-  const [dpr, setDpr] = useState(1.5);
+  // 휴대폰 등 저사양 기기는 처음부터 가볍게 시작 (이 컴포넌트는 브라우저에서만 렌더링됨)
+  const [quality, setQuality] = useState<"high" | "low">(() => (isLowPower() ? "low" : "high"));
+  const [dpr, setDpr] = useState(() => (isLowPower() ? 1 : 1.5));
 
   return (
     <Canvas

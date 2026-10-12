@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { useReading } from "@/store/readingStore";
 import type { ScenePhase, Spread } from "@/types/tarot";
+import { isPortrait } from "./layout";
 
 type Shot = { pos: [number, number, number]; look: [number, number, number] };
 
@@ -20,6 +21,7 @@ const SHOTS: Record<Exclude<ScenePhase, "reading">, Shot> = {
 /** 읽기 단계: 테이블을 내려다보는 샷 — 배열이 클수록 멀리 */
 const READING_DISTANCE: Record<Spread["id"], number> = { one: 0.72, three: 0.8, love: 0.95, "celtic-cross": 1.3 };
 const READING_OFFSET = new THREE.Vector3(0, 6.6, 4.4);
+const PORTRAIT_SELECT_SHIFT = new THREE.Vector3(0, -1.6, 1.8);
 
 /** 씬 단계별 카메라 샷 사이를 부드럽게 이동 + 마우스 패럴랙스 */
 export default function CameraRig() {
@@ -32,20 +34,28 @@ export default function CameraRig() {
     const s = useReading.getState();
     const aspect = state.size.width / state.size.height;
 
+    const portrait = isPortrait(aspect);
     if (s.phase === "reading") {
       const d = READING_DISTANCE[s.spreadId];
       // 넓은 화면에서는 오른쪽 해석 패널 자리만큼 배열을 왼쪽으로 비켜 보이게
       const shift = aspect > 1.2 ? 1.25 * d : 0;
-      target.current.set(shift, 0, 0.5 * d);
+      // 휴대폰: 아래쪽 해석 패널을 피해 배열이 화면 위쪽에 오도록 시선을 앞으로 당김
+      target.current.set(shift, 0, (portrait ? 1.9 : 0.5) * d);
       pos.current.copy(READING_OFFSET).multiplyScalar(d).add(target.current);
+    } else if (portrait && s.phase === "picking") {
+      // 휴대폰 전용 아치를 정면에서 꽉 차게
+      target.current.set(0, 1.9, 1.4);
+      pos.current.set(0, 2.0, 10.6);
     } else {
       const shot = SHOTS[s.phase];
       target.current.set(...shot.look);
       pos.current.set(...shot.pos);
+      // 휴대폰: 아래쪽 선택 UI를 피해 테이블이 화면 위쪽에 오도록
+      if (portrait && (s.phase === "select" || s.phase === "question")) target.current.add(PORTRAIT_SELECT_SHIFT);
     }
 
-    // 세로로 좁은 화면이면 멀리서 보이게
-    const back = THREE.MathUtils.clamp(1.35 / aspect, 1, 2.3);
+    // 세로로 좁은 화면이면 멀리서 보이게 (휴대폰 아치 샷은 이미 맞춰 둠)
+    const back = portrait && s.phase === "picking" ? 1 : THREE.MathUtils.clamp(1.35 / aspect, 1, 2.3);
     pos.current.sub(target.current).multiplyScalar(back).add(target.current);
     pos.current.x += state.pointer.x * 0.4;
     pos.current.y += state.pointer.y * 0.22;
