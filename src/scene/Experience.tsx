@@ -6,7 +6,7 @@ import { Canvas } from "@react-three/fiber";
 import { PerformanceMonitor, Preload } from "@react-three/drei";
 import CameraRig from "./CameraRig";
 import Director from "./Director";
-import { isLowPower, isUltraLite } from "./layout";
+import { qualityLevel } from "./layout";
 import GsapSync from "./GsapSync";
 import Lighting from "./Lighting";
 import Table from "./environment/Table";
@@ -24,9 +24,12 @@ import { useReading } from "@/store/readingStore";
 export default function Experience() {
   // 휴대폰 등 저사양 기기는 처음부터 가볍게 시작 (이 컴포넌트는 브라우저에서만 렌더링됨)
   // 품질은 시작할 때 한 번만 정함 — 도중에 바꾸면 후처리 파이프라인을 다시 만들며 크게 멈칫함
-  const [quality] = useState<"high" | "low">(() => (isLowPower() ? "low" : "high"));
-  const [dpr, setDpr] = useState(() => (isUltraLite() ? 0.75 : isLowPower() ? 1 : 1.5));
-  const [effects] = useState(() => !isUltraLite()); // 초경량 모드는 화면 후처리 효과 없이
+  const [level] = useState(() => qualityLevel());
+  const quality = level === "high" ? "high" : "low";
+  const effects = level !== "ultra"; // 초경량은 화면 후처리 효과 없이
+  const [dpr, setDpr] = useState(() =>
+    level === "ultra" ? 0.75 : level === "lite" ? 1 : Math.min(window.devicePixelRatio || 1, 1.5),
+  );
 
   return (
     <Canvas

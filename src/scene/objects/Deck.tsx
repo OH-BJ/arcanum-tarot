@@ -9,7 +9,7 @@ import { SHUFFLE_SECONDS, useReading } from "@/store/readingStore";
 import { createEdgeGeometry, createFaceGeometry } from "./cardGeometry";
 import { createCardBackTexture } from "./proceduralTextures";
 import { setHoverCursor } from "../cursor";
-import { ARCH, isLowPower, isPortrait } from "../layout";
+import { ARCH, isPortrait, isUltraLite } from "../layout";
 import { prefetchCardTexture } from "./cardTextures";
 import { pickRibbon, resetRibbon } from "../pickRibbon";
 import { sfx } from "@/lib/sound";
@@ -46,8 +46,8 @@ export default function Deck() {
   const backTex = useMemo(() => createCardBackTexture(), []);
   const faceMat = useMemo(
     () =>
-      // 저사양: 조명 계산 없는 재질 (78장이 겹치는 덱에서 GPU 부담이 큼)
-      isLowPower()
+      // 초경량: 조명 계산 없는 재질 (78장이 겹치는 덱에서 GPU 부담이 큼)
+      isUltraLite()
         ? new THREE.MeshBasicMaterial({ map: backTex, color: "#e6dcf0", side: THREE.DoubleSide })
         : new THREE.MeshStandardMaterial({
         map: backTex,
@@ -63,7 +63,7 @@ export default function Deck() {
   const edgeMats = useMemo(
     () => [
       new THREE.MeshBasicMaterial({ visible: false }),
-      isLowPower()
+      isUltraLite()
         ? new THREE.MeshBasicMaterial({ color: "#8f6f26" })
         : new THREE.MeshStandardMaterial({ color: "#d4af37", metalness: 1, roughness: 0.3, emissive: "#ffb347", emissiveIntensity: 0.25 }),
     ],

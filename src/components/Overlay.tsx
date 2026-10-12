@@ -9,7 +9,7 @@ import EnterGate from "./EnterGate";
 import QuestionFlight from "./QuestionFlight";
 import SoundToggle from "./SoundToggle";
 import MobilePicker from "./MobilePicker";
-import LiteModeToggle from "./LiteModeToggle";
+import QualityToggle from "./QualityToggle";
 import { useEffect } from "react";
 import Link from "next/link";
 
@@ -65,7 +65,8 @@ export default function Overlay() {
       <QuestionFlight />
       <EnterGate />
       {entered && <SoundToggle />}
-      {entered && <LiteModeToggle />}
+      {/* 화질 선택은 시작·배열 선택 화면에서만 (휴대폰에서 다른 안내 문구와 겹치지 않게) */}
+      {entered && (phase === "intro" || phase === "select") && <QualityToggle />}
       {/* 인트로 건너뛰기 */}
       <button
         onClick={() => useReading.getState().setPhase("select")}

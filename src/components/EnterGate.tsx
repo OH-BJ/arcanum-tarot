@@ -37,6 +37,9 @@ export default function EnterGate() {
             ✦ 운명의 문 열기 ✦
           </button>
           <p className="font-serif-ko text-xs tracking-widest text-parchment/45">소리와 함께 감상하면 더 좋아요</p>
+          <p className="font-serif-ko text-[11px] tracking-wider text-parchment/35">
+            화면이 버벅이면 들어간 뒤 오른쪽 위에서 &lsquo;가벼운&rsquo; 화질을 골라 주세요
+          </p>
         </>
       ) : (
         <p className="animate-pulse-soft font-serif-ko text-sm tracking-[0.4em] text-parchment/60">별빛을 모으는 중…</p>
